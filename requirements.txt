@@ -1,0 +1,6 @@
+streamlit==1.28.0
+google-generativeai
+PyPDF2
+pdfplumber
+python-dotenv
+deep_translator
