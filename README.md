@@ -1,43 +1,56 @@
 # 📚 ZaLingo Academic - Research Paper Summarizer
 
-[![Streamlit App](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)](https://your-app-url.streamlit.app)
-[![Python](https://img.shields.io/badge/Python-3.9-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com)
+**The first research paper summarizer that supports 10 South African languages** 🇿🇦
+
+[![Python](https://img.shields.io/badge/Python-3.8+-blue)](https://python.org)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red)](https://streamlit.io)
+[![Gemini AI](https://img.shields.io/badge/Gemini%20AI-Free-brightgreen)](https://aistudio.google.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
 
-## Overview
+## 🌍 **Supported Languages**
 
-**ZaLingo Academic** is the first research paper summarizer that supports **10 South African languages**. Upload any academic PDF and get a summary in your preferred language.
-
-🇿🇦 **Supported languages:** isiZulu • isiXhosa • Afrikaans • English • Sepedi • Sesotho • Setswana • siSwati • Xitsonga • Tshivenda
-
----
-
-## ✨ Features
-
--  **PDF Upload** - Upload any academic paper in PDF format
--  **AI Summaries** - Uses OpenAI GPT-3.5-turbo-16k for accurate summaries
--  **10 Languages** - Translate summaries to any South African language
--  **5 Summary Types** - Choose from different summary formats
--  **Download** - Save summaries as text files
--  **Citations** - Automatically include citation information
+| Language | Speakers in SA |
+|----------|----------------|
+| **isiZulu** | ~12 million |
+| **isiXhosa** | ~8 million |
+| **Afrikaans** | ~7 million |
+| **English** | ~4.9 million |
+| **Sepedi** | ~4.7 million |
+| **Setswana** | ~4 million |
+| **Sesotho** | ~3.8 million |
+| **Xitsonga** | ~2.3 million |
+| **siSwati** | ~1.3 million |
+| **Tshivenda** | ~1.2 million |
 
 ---
 
-## Summary Types
+## ✨ **Features**
+
+✅ **PDF Upload** - Upload any academic paper in PDF format  
+✅ **AI Summaries** - Uses **Google Gemini AI** (FREE tier) for accurate summaries  
+✅ **10 Languages** - Get summaries in ANY South African language  
+✅ **5 Summary Types** - Choose different formats for different needs  
+✅ **Mistral AI Option** - Alternative free AI provider  
+✅ **Download** - Save summaries as text files  
+✅ **100% FREE** - No credit card required for API access
+
+---
+
+## 📋 **Summary Types**
 
 | Type | Best For |
-|:-----|:---------|
+|------|----------|
 | **Full paper summary** | Complete understanding of the paper |
 | **Abstract only** | Quick preview before deep reading |
 | **Introduction + Conclusion** | Context and takeaways |
 | **Key findings only** | Literature review and research |
-| **Study notes** | Exam preparation and revision |
+| **Study notes (bullet points)** | Exam preparation and revision |
 
 ---
 
-## 🚀 Quick Start
+## 🚀 **Quick Start**
 
 ```bash
 # Clone the repository
@@ -47,11 +60,26 @@ cd zalingo-academic
 # Install dependencies
 pip install -r requirements.txt
 
+# Run the app
+streamlit run app.py
+
+🔑 How to Get Your FREE API Key
+Go to Google AI Studio
+
+Sign in with your Google account
+
+Click "Get API Key"
+
+Copy your key (starts with "AIza...")
+
+Paste it in the app sidebar
+
+No credit card required! 60 requests per minute free.
 
 📖 How to Use
-Enter your OpenAI API key in the sidebar
+Enter your Gemini API key in the sidebar
 
-Select your language
+Select your language (isiZulu, Afrikaans, etc.)
 
 Choose summary type
 
@@ -64,31 +92,45 @@ Download your summary
 🛠️ Built With
 Streamlit - Web app framework
 
-OpenAI GPT-3.5-turbo-16k - AI summarization
+Google Gemini AI - FREE AI summarization (2026 models)
 
-Google Translate - Language translation
+Mistral AI - Alternative free AI provider
+
+Deep Translator - Language translation
 
 PyPDF2 / pdfplumber - PDF text extraction
 
+🎯 Impact
+ZaLingo Academic makes research accessible to over 20 million South Africans who may struggle with English academic papers. By providing summaries in home languages, it:
+
+📚 Improves comprehension for students
+
+🌍 Promotes multilingualism in academia
+
+🎓 Supports rural and township learners
+
+🔬 Encourages research engagement across language barriers
+
 👩‍💻 Author
 Felicia Khoza
-
 MSc Candidate in Computational Health Informatics
-
 University of Cape Town
 
-LinkedIn
-
-GitHub
+https://img.shields.io/badge/GitHub-Felicia--blue-blue
+https://img.shields.io/badge/LinkedIn-Felicia%2520Khoza-blue
 
 🙏 Acknowledgements
-DS-I Africa LLM Training
+DS-I Africa LLM Training (2026)
 
 University of Cape Town
+
+Google Gemini for free API access
 
 All 10 South African language communities
 
+📄 License
+MIT License - use freely, attribution appreciated
+
+Built with ❤️ during LLM Training (DS-I Africa, 2026)
 
 
-# Run the app
-streamlit run app.py
