@@ -61,7 +61,7 @@ cd zalingo-academic
 pip install -r requirements.txt
 
 # Run the app
-streamlit run app.py
+streamlit run src/app.py
 
 🔑 How to Get Your FREE API Key
 Go to Google AI Studio
