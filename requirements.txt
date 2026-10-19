@@ -1,6 +1,6 @@
-streamlit==1.28.0
+streamlit
 google-generativeai
 PyPDF2
 pdfplumber
-python-dotenv
 deep_translator
+python-dotenv
