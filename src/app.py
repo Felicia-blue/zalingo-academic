@@ -3,6 +3,7 @@ import google.generativeai as genai
 import requests
 import PyPDF2
 import pdfplumber
+from datetime import date
 
 st.set_page_config(page_title="ZaLingo Academic", page_icon="📚", layout="wide",
                    initial_sidebar_state="expanded")
@@ -15,8 +16,11 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=Instrument+Sans:wght@400;500;600&display=swap');
 
-html, body, .stApp, [data-testid="stSidebar"] * , .stMarkdown, label, input, textarea, button {
+html, body, .stApp, .stMarkdown, p, label, input, textarea, button, [data-baseweb="select"] {
     font-family: 'Instrument Sans', sans-serif;
+}
+[data-testid="stIconMaterial"], .material-symbols-rounded, [class*="material-symbols"] {
+    font-family: 'Material Symbols Rounded' !important;
 }
 .stApp { background: #F4F7F6; color: #12302D; }
 
@@ -44,7 +48,7 @@ header[data-testid="stHeader"] { background: transparent; }
 /* Sidebar */
 [data-testid="stSidebar"] { background: #FFFFFF; border-right: 1px solid #DCE5E2; }
 [data-testid="stSidebar"] h2 { font-family: 'Source Serif 4', serif; font-size: 1.3rem; color: #12302D; }
-.brand { font-family: 'Source Serif 4', serif; font-weight: 700; font-size: 1.35rem; color: #12302D; }
+.brand { display: flex; align-items: center; gap: .7rem; font-family: 'Source Serif 4', serif; font-weight: 700; font-size: 1.3rem; line-height: 1.2; color: #12302D; }
 .brand small { display:block; font-family:'Instrument Sans',sans-serif; font-weight:400; font-size:.8rem; color:#54706C; }
 
 /* Buttons */
@@ -70,10 +74,27 @@ header[data-testid="stHeader"] { background: transparent; }
 /* Inputs */
 .stTextArea textarea, .stTextInput input { border-radius: 8px; }
 
+/* Hover + focus states */
+[data-testid="stFileUploaderDropzone"] button, .stFormSubmitButton > button {
+    border: 1px solid #0F5F57; color: #0F5F57; background: #fff; border-radius: 8px;
+    font-weight: 600; transition: background .15s ease, color .15s ease; }
+[data-testid="stFileUploaderDropzone"] button:hover, .stFormSubmitButton > button:hover {
+    background: #0F5F57; color: #fff; border-color: #0F5F57; }
+.stTabs [data-baseweb="tab"]:hover { color: #0F5F57; }
+[data-testid="stExpander"] { border: 1px solid #DCE5E2; border-radius: 8px; background: #fff; }
+[data-testid="stExpander"] summary { transition: background .15s ease; }
+[data-testid="stExpander"] summary:hover { background: #E8F1EF; color: #0F5F57; }
+[data-baseweb="select"] > div { transition: border-color .15s ease; }
+[data-baseweb="select"] > div:hover { border-color: #0F5F57; }
+.stButton > button:active, .stDownloadButton > button:active { transform: translateY(1px); }
+button, summary, [data-baseweb="tab"], [data-baseweb="select"] { cursor: pointer; }
+button:focus-visible, summary:focus-visible { outline: 3px solid #E0A100 !important; outline-offset: 2px; }
+
 /* Results */
 .result-head { font-family: 'Source Serif 4', serif; font-size: 1.5rem; color: #12302D; margin: 0 0 .5rem; }
 [data-testid="stVerticalBlockBorderWrapper"] { background: #fff; border-color: #DCE5E2 !important; border-radius: 10px; }
 
+.footer svg { vertical-align: middle; margin-right: .4rem; }
 .footer { text-align: center; color: #7A918D; font-size: .85rem; margin-top: 3rem; }
 @media (max-width: 700px) { .hero { padding: 2rem 1.4rem; } .hero h1 { font-size: 2rem; } }
 </style>
@@ -82,6 +103,12 @@ header[data-testid="stHeader"] { background: transparent; }
 # ============================================
 # CONFIG
 # ============================================
+def logo(size=36, a="#0F5F57", b="#E0A100", lens="#12302D"):
+    """BA Digital mark: two circles ("born from two") whose overlap is the shared ground."""
+    return (f'<svg width="{size}" height="{size}" viewBox="0 0 40 40" role="img" aria-label="BA Digital">'
+            f'<circle cx="15" cy="20" r="12" fill="{a}"/><circle cx="27" cy="20" r="12" fill="{b}"/>'
+            f'<path d="M21 9.61A12 12 0 0 1 21 30.39A12 12 0 0 1 21 9.61Z" fill="{lens}"/></svg>')
+
 LANGUAGES = ["English", "Afrikaans", "isiZulu", "isiXhosa", "Sepedi", "Sesotho",
              "Setswana", "siSwati", "Xitsonga", "Tshivenda"]
 
@@ -99,11 +126,65 @@ LENGTHS = {
 }
 
 # ============================================
+# ACCESS CODES + USAGE LIMITS
+# In Streamlit secrets add:
+#   GEMINI_API_KEY = "..."
+#   [ACCESS_CODES]
+#   "UJ-2026-xxxx" = "University of Johannesburg"
+# If ACCESS_CODES is absent the app is open (handy for local development).
+# ============================================
+DAILY_LIMIT = 30  # summaries per access code per day
+
+def secret(name, default=""):
+    try:
+        return st.secrets.get(name, default)
+    except Exception:
+        return default
+
+@st.cache_resource
+def usage_store():
+    return {}  # shared across sessions; resets when the app restarts
+
+def used_today(code):
+    return usage_store().get((code, date.today().isoformat()), 0)
+
+def record_use(code):
+    key = (code, date.today().isoformat())
+    usage_store()[key] = usage_store().get(key, 0) + 1
+
+def show_usage():
+    code = st.session_state.get("code")
+    if code:
+        left = max(DAILY_LIMIT - used_today(code), 0)
+        usage_slot.caption(f"{st.session_state['org']} · {left} of {DAILY_LIMIT} summaries left today")
+
+ACCESS = dict(secret("ACCESS_CODES", {}))
+if ACCESS and "org" not in st.session_state:
+    _, mid, _ = st.columns([1, 2, 1])
+    with mid:
+        st.markdown(f'<div class="hero">{logo(44, "#4FA79D", "#E0A100", "#FFFFFF")}<h1 style="margin-top:1rem">ZaLingo Academic</h1>'
+                    '<p>Sign in with the access code your institution received from BA Digital.</p></div>',
+                    unsafe_allow_html=True)
+        with st.form("login"):
+            entered = st.text_input("Access code", type="password").strip()
+            if st.form_submit_button("Sign in", use_container_width=True):
+                if entered in ACCESS:
+                    st.session_state.update(code=entered, org=ACCESS[entered])
+                    st.rerun()
+                else:
+                    st.error("That code wasn't recognised. Check it and try again, or contact BA Digital.")
+    st.stop()
+
+# ============================================
 # SIDEBAR
 # ============================================
 with st.sidebar:
-    st.markdown('<div class="brand">ZaLingo Academic<small>by BA Digital</small></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="brand">{logo(38)}<div>ZaLingo Academic<small>by BA Digital</small></div></div>', unsafe_allow_html=True)
     st.write("")
+    usage_slot = st.empty()
+    if st.session_state.get("org") and st.button("Sign out"):
+        st.session_state.clear()
+        st.rerun()
     st.subheader("Summary options")
     language = st.selectbox("Output language", LANGUAGES)
     summary_type = st.selectbox("Format", list(SUMMARY_PROMPTS))
@@ -111,7 +192,7 @@ with st.sidebar:
     include_citation = st.checkbox("Add citation line", value=True)
 
     # If you set GEMINI_API_KEY in Streamlit secrets, users never see or need a key.
-    secret_key = st.secrets.get("GEMINI_API_KEY", "") if hasattr(st, "secrets") else ""
+    secret_key = secret("GEMINI_API_KEY")
     api_provider, api_key = "Google Gemini", secret_key
     if not secret_key:
         with st.expander("AI provider (advanced)"):
@@ -119,6 +200,8 @@ with st.sidebar:
             link = "https://aistudio.google.com/apikey" if "Gemini" in api_provider else "https://console.mistral.ai"
             st.markdown(f"[Get a free API key]({link})")
             api_key = st.text_input("API key", type="password", placeholder="Paste key here")
+
+show_usage()
 
 # ============================================
 # BACKEND
@@ -174,6 +257,11 @@ def summarize(text, source_name):
     if not api_key:
         st.warning("Add an API key in the sidebar under AI provider (advanced).")
         return
+    code = st.session_state.get("code")
+    if code and used_today(code) >= DAILY_LIMIT:
+        st.warning(f"Your institution has used today's {DAILY_LIMIT} summaries. The limit resets tomorrow. "
+                   "Contact BA Digital to raise it.")
+        return
     prompt = (f"{SUMMARY_PROMPTS[summary_type]} {LENGTHS[summary_length]} "
               f"Write the entire response in {language}, using clear academic {language}. "
               f"Keep proper nouns and technical terms with no standard {language} equivalent in English.")
@@ -181,6 +269,9 @@ def summarize(text, source_name):
         fn = call_gemini if "Gemini" in api_provider else call_mistral
         summary = fn(api_key, prompt, text)
     if summary:
+        if code:
+            record_use(code)
+            show_usage()
         if include_citation:
             summary += f"\n\n---\n*Source: {source_name} · Summarized with ZaLingo Academic*"
         with st.container(border=True):
@@ -226,4 +317,11 @@ with tab2:
         else:
             summarize(pasted, title or "Pasted text")
 
-st.markdown('<div class="footer">© 2026 BA Digital · ZaLingo Academic</div>', unsafe_allow_html=True)
+with st.expander("How your data is handled"):
+    st.markdown(
+        "- Your PDF or pasted text is processed in memory to write the summary. ZaLingo does not store papers or summaries.\n"
+        "- To write the summary, the text is sent to the AI provider (Google Gemini or Mistral AI). Their terms govern how they handle it.\n"
+        "- Don't upload embargoed papers, or papers containing personal information about research participants, without permission."
+    )
+
+st.markdown(f'<div class="footer">{logo(22)}© 2026 BA Digital · Born from two. Built for you.</div>', unsafe_allow_html=True)
