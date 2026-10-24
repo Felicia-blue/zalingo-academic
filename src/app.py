@@ -27,8 +27,11 @@ html, body, .stApp, .stMarkdown, p, label, input, textarea, button, [data-basewe
 .stApp { background: #F4F7F6; color: #12302D; }
 
 /* Hide Streamlit chrome */
-#MainMenu, footer, [data-testid="stToolbar"], [data-testid="stDecoration"],
-.stDeployButton, [data-testid="stStatusWidget"] { display: none !important; }
+#MainMenu, footer, [data-testid="stToolbarActions"], [data-testid="stMainMenu"], [data-testid="stDecoration"],
+.stDeployButton, .stAppDeployButton, [data-testid="stStatusWidget"] { display: none !important; }
+/* Never hide the control that reopens a collapsed sidebar */
+[data-testid="stExpandSidebarButton"], [data-testid="stSidebarCollapsedControl"] {
+    visibility: visible !important; color: #0F5F57 !important; }
 header[data-testid="stHeader"] { background: transparent; }
 .block-container { max-width: 1040px; padding-top: 1.5rem; padding-bottom: 3rem; }
 
@@ -92,6 +95,11 @@ header[data-testid="stHeader"] { background: transparent; }
 button, summary, [data-baseweb="tab"], [data-baseweb="select"] { cursor: pointer; }
 button:focus-visible, summary:focus-visible { outline: 3px solid #E0A100 !important; outline-offset: 2px; }
 
+.hero-brand { display: none; align-items: center; gap: .6rem; color: #fff; font-family: 'Source Serif 4', serif;
+              font-weight: 700; font-size: 1.1rem; margin-bottom: 1.2rem; }
+.mobile-hint { display: none; color: #54706C; font-size: .9rem; margin-bottom: 1rem; }
+@media (max-width: 768px) { .hero-brand { display: flex; } .mobile-hint { display: block; } }
+
 /* Language pills */
 .pill-label { font-weight: 600; color: #12302D; margin: .2rem 0 .4rem; }
 [data-testid="stBaseButton-pills"], [data-testid="stBaseButton-pillsActive"] {
@@ -99,8 +107,9 @@ button:focus-visible, summary:focus-visible { outline: 3px solid #E0A100 !import
     transition: background .15s ease, border-color .15s ease, color .15s ease; }
 [data-testid="stBaseButton-pills"] { background: #fff; border: 1px solid #C5D5D1; color: #12302D; }
 [data-testid="stBaseButton-pills"]:hover { background: #E8F1EF; border-color: #0F5F57; color: #0F5F57; }
-[data-testid="stBaseButton-pillsActive"] { background: #0F5F57; border: 1px solid #0F5F57; color: #fff; }
-[data-testid="stBaseButton-pillsActive"]:hover { background: #0B4A44; }
+[data-testid="stBaseButton-pillsActive"], button[kind="pillsActive"], [data-testid="stPills"] button[aria-checked="true"],
+[data-testid="stPills"] button[aria-pressed="true"] { background: #0F5F57 !important; border: 1px solid #0F5F57 !important; color: #fff !important; }
+[data-testid="stBaseButton-pillsActive"]:hover, button[kind="pillsActive"]:hover { background: #0B4A44 !important; }
 
 .faq-head { font-family: 'Source Serif 4', serif; font-weight: 700; font-size: 1.5rem; color: #12302D; margin: 2.5rem 0 .8rem; }
 
@@ -210,6 +219,10 @@ with st.sidebar:
     if st.session_state.get("org") and st.button("Sign out"):
         st.session_state.clear()
         st.rerun()
+    st.subheader("Summary options")
+    summary_type = st.selectbox("Format", list(SUMMARY_PROMPTS))
+    summary_length = st.select_slider("Length", options=list(LENGTHS), value="Medium")
+    include_citation = st.checkbox("Add citation line", value=True)
 
     # If you set GEMINI_API_KEY in Streamlit secrets, users never see or need a key.
     secret_key = secret("GEMINI_API_KEY")
@@ -304,6 +317,7 @@ def summarize(text, source_name):
 # ============================================
 st.markdown(f"""
 <div class="hero">
+  <div class="hero-brand">{logo(34, "#4FA79D", "#E0A100", "#FFFFFF")}<span>BA Digital</span></div>
   <h1>Read any research paper in your own language.</h1>
   <p>Upload a PDF or paste the text. ZaLingo returns a clear summary in one of ten South African languages, in seconds.</p>
 </div>
@@ -317,11 +331,7 @@ else:  # older Streamlit versions
     language = st.selectbox("Output language", LANGUAGES)
 st.write("")
 
-o1, o2, o3 = st.columns([2, 2, 1.4])
-summary_type = o1.selectbox("Format", list(SUMMARY_PROMPTS))
-summary_length = o2.select_slider("Length", options=list(LENGTHS), value="Medium")
-include_citation = o3.checkbox("Add citation line", value=True)
-st.write("")
+st.markdown('<div class="mobile-hint">Tap the arrow at the top left to change format, length and citation.</div>', unsafe_allow_html=True)
 
 tab1, tab2 = st.tabs(["Upload PDF", "Paste text"])
 
