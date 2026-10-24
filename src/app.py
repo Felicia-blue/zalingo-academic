@@ -102,13 +102,26 @@ button:focus-visible, summary:focus-visible { outline: 3px solid #E0A100 !import
 [data-testid="stBaseButton-pillsActive"] { background: #0F5F57; border: 1px solid #0F5F57; color: #fff; }
 [data-testid="stBaseButton-pillsActive"]:hover { background: #0B4A44; }
 
+.faq-head { font-family: 'Source Serif 4', serif; font-weight: 700; font-size: 1.5rem; color: #12302D; margin: 2.5rem 0 .8rem; }
+
 /* Results */
 .result-head { font-family: 'Source Serif 4', serif; font-size: 1.5rem; color: #12302D; margin: 0 0 .5rem; }
 [data-testid="stVerticalBlockBorderWrapper"] { background: #fff; border-color: #DCE5E2 !important; border-radius: 10px; }
 
 .footer svg { vertical-align: middle; margin-right: .4rem; }
 .footer { text-align: center; color: #7A918D; font-size: .85rem; margin-top: 3rem; }
-@media (max-width: 700px) { .hero { padding: 2rem 1.4rem; } .hero h1 { font-size: 2rem; } }
+@media (max-width: 700px) {
+  .block-container { padding: 1rem 1rem 2.5rem !important; }
+  .hero { padding: 1.6rem 1.3rem; border-radius: 12px; }
+  .hero h1 { font-size: 1.7rem; }
+  .hero p { font-size: 1rem; }
+  .feat { margin-bottom: .75rem; height: auto; }
+  .faq-head { font-size: 1.3rem; margin-top: 2rem; }
+  .stButton > button, .stDownloadButton > button { width: 100%; }
+  [data-testid="stFileUploaderDropzone"] { padding: 1rem; }
+  .stTabs [data-baseweb="tab-list"] { gap: 1.2rem; }
+  .brand { font-size: 1.15rem; }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -197,10 +210,6 @@ with st.sidebar:
     if st.session_state.get("org") and st.button("Sign out"):
         st.session_state.clear()
         st.rerun()
-    st.subheader("Summary options")
-    summary_type = st.selectbox("Format", list(SUMMARY_PROMPTS))
-    summary_length = st.select_slider("Length", options=list(LENGTHS), value="Medium")
-    include_citation = st.checkbox("Add citation line", value=True)
 
     # If you set GEMINI_API_KEY in Streamlit secrets, users never see or need a key.
     secret_key = secret("GEMINI_API_KEY")
@@ -308,10 +317,10 @@ else:  # older Streamlit versions
     language = st.selectbox("Output language", LANGUAGES)
 st.write("")
 
-c1, c2, c3 = st.columns(3)
-c1.markdown('<div class="feat"><b>Ten languages</b><span>From isiZulu to Tshivenda, plus English and Afrikaans.</span></div>', unsafe_allow_html=True)
-c2.markdown('<div class="feat"><b>Five summary formats</b><span>Full summary, abstract, intro and conclusion, key findings, or study notes.</span></div>', unsafe_allow_html=True)
-c3.markdown('<div class="feat"><b>Citation included</b><span>Every summary can carry a source line you can paste into your notes.</span></div>', unsafe_allow_html=True)
+o1, o2, o3 = st.columns([2, 2, 1.4])
+summary_type = o1.selectbox("Format", list(SUMMARY_PROMPTS))
+summary_length = o2.select_slider("Length", options=list(LENGTHS), value="Medium")
+include_citation = o3.checkbox("Add citation line", value=True)
 st.write("")
 
 tab1, tab2 = st.tabs(["Upload PDF", "Paste text"])
@@ -334,11 +343,44 @@ with tab2:
         else:
             summarize(pasted, title or "Pasted text")
 
-with st.expander("How your data is handled"):
-    st.markdown(
-        "- Your PDF or pasted text is processed in memory to write the summary. ZaLingo does not store papers or summaries.\n"
-        "- To write the summary, the text is sent to the AI provider (Google Gemini or Mistral AI). Their terms govern how they handle it.\n"
-        "- Don't upload embargoed papers, or papers containing personal information about research participants, without permission."
-    )
+c1, c2, c3 = st.columns(3)
+c1.markdown('<div class="feat"><b>Ten languages</b><span>From isiZulu to Tshivenda, plus English and Afrikaans.</span></div>', unsafe_allow_html=True)
+c2.markdown('<div class="feat"><b>Five summary formats</b><span>Full summary, abstract, intro and conclusion, key findings, or study notes.</span></div>', unsafe_allow_html=True)
+c3.markdown('<div class="feat"><b>Citation included</b><span>Every summary can carry a source line you can paste into your notes.</span></div>', unsafe_allow_html=True)
+st.write("")
+
+CONTACT_EMAIL = ""  # e.g. "hello@yourdomain.co.za" - shown in the FAQ when set
+_contact = f" Email {CONTACT_EMAIL}." if CONTACT_EMAIL else ""
+
+FAQ = [
+    ("Which languages can I get summaries in?",
+     "English, Afrikaans, isiZulu, isiXhosa, Sepedi, Sesotho, Setswana, siSwati, Xitsonga and Tshivenda. "
+     "Choose one in the \"Summarize into\" row above."),
+    ("How accurate are the summaries?",
+     "Summaries are written by AI and can contain mistakes or awkward wording, especially in the smaller languages. "
+     "Use them to understand a paper quickly, then check important details against the original. "
+     "Cite the original paper, not the summary."),
+    ("Which PDFs work?",
+     "PDFs with selectable text. Scanned papers (pictures of pages) can't be read yet. "
+     "Run them through OCR first, or paste the text instead."),
+    ("How long can a paper be?",
+     "ZaLingo reads roughly the first 7 to 10 pages. For longer papers, paste one section at a time "
+     "in the Paste text tab."),
+    ("How is my data handled?",
+     "- Your PDF or pasted text is processed in memory to write the summary. ZaLingo does not store papers or summaries.\n"
+     "- To write the summary, the text is sent to the AI provider (Google Gemini or Mistral AI). Their terms govern how they handle it.\n"
+     "- Don't upload embargoed papers, or papers containing personal information about research participants, without permission."),
+    ("How do I get access for my university?",
+     "BA Digital sets up an access code for your department or institution." + _contact),
+]
+if ACCESS:
+    FAQ.insert(5, ("Why is there a daily limit?",
+                   f"Each access code includes up to {DAILY_LIMIT} summaries a day, shared across your institution. "
+                   "The count resets daily. Need more? Contact BA Digital." + _contact))
+
+st.markdown('<div class="faq-head">Frequently asked questions</div>', unsafe_allow_html=True)
+for _q, _a in FAQ:
+    with st.expander(_q):
+        st.markdown(_a)
 
 st.markdown(f'<div class="footer">{logo(22)}© 2026 BA Digital · Born from two. Built for you.</div>', unsafe_allow_html=True)
