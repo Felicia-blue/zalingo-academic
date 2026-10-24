@@ -4,8 +4,10 @@ import requests
 import PyPDF2
 import pdfplumber
 from datetime import date
+from pathlib import Path
 
-st.set_page_config(page_title="ZaLingo Academic", page_icon="📚", layout="wide",
+_icon = Path(__file__).parent / "favicon.png"
+st.set_page_config(page_title="ZaLingo Academic", page_icon=str(_icon) if _icon.exists() else "📚", layout="wide",
                    initial_sidebar_state="expanded")
 
 # ============================================
@@ -31,10 +33,10 @@ header[data-testid="stHeader"] { background: transparent; }
 .block-container { max-width: 1040px; padding-top: 1.5rem; padding-bottom: 3rem; }
 
 /* Hero */
-.hero { background: #12302D; border-radius: 14px; padding: 3rem 3rem 2.5rem; margin-bottom: 1.5rem; }
+.hero { background: #12302D; border-radius: 14px; padding: 3rem; margin-bottom: 1.5rem; }
 .hero h1 { font-family: 'Source Serif 4', serif; color: #FFFFFF; font-size: 2.7rem;
            line-height: 1.15; font-weight: 700; margin: 0 0 .9rem; max-width: 18em; letter-spacing: -0.01em; }
-.hero p { color: #BFD3CF; font-size: 1.1rem; line-height: 1.6; max-width: 36em; margin: 0 0 1.6rem; }
+.hero p { color: #BFD3CF; font-size: 1.1rem; line-height: 1.6; max-width: 36em; margin: 0; }
 .langs { display: flex; flex-wrap: wrap; gap: .5rem; }
 .langs span { border: 1px solid #3E6B65; color: #E3EFEC; border-radius: 999px;
               padding: .25rem .8rem; font-size: .85rem; }
@@ -89,6 +91,16 @@ header[data-testid="stHeader"] { background: transparent; }
 .stButton > button:active, .stDownloadButton > button:active { transform: translateY(1px); }
 button, summary, [data-baseweb="tab"], [data-baseweb="select"] { cursor: pointer; }
 button:focus-visible, summary:focus-visible { outline: 3px solid #E0A100 !important; outline-offset: 2px; }
+
+/* Language pills */
+.pill-label { font-weight: 600; color: #12302D; margin: .2rem 0 .4rem; }
+[data-testid="stBaseButton-pills"], [data-testid="stBaseButton-pillsActive"] {
+    border-radius: 999px; padding: .35rem 1rem; font-weight: 500; cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease; }
+[data-testid="stBaseButton-pills"] { background: #fff; border: 1px solid #C5D5D1; color: #12302D; }
+[data-testid="stBaseButton-pills"]:hover { background: #E8F1EF; border-color: #0F5F57; color: #0F5F57; }
+[data-testid="stBaseButton-pillsActive"] { background: #0F5F57; border: 1px solid #0F5F57; color: #fff; }
+[data-testid="stBaseButton-pillsActive"]:hover { background: #0B4A44; }
 
 /* Results */
 .result-head { font-family: 'Source Serif 4', serif; font-size: 1.5rem; color: #12302D; margin: 0 0 .5rem; }
@@ -186,7 +198,6 @@ with st.sidebar:
         st.session_state.clear()
         st.rerun()
     st.subheader("Summary options")
-    language = st.selectbox("Output language", LANGUAGES)
     summary_type = st.selectbox("Format", list(SUMMARY_PROMPTS))
     summary_length = st.select_slider("Length", options=list(LENGTHS), value="Medium")
     include_citation = st.checkbox("Add citation line", value=True)
@@ -282,14 +293,20 @@ def summarize(text, source_name):
 # ============================================
 # PAGE
 # ============================================
-chips = "".join(f'<span class="{"on" if l == language else ""}">{l}</span>' for l in LANGUAGES)
 st.markdown(f"""
 <div class="hero">
   <h1>Read any research paper in your own language.</h1>
   <p>Upload a PDF or paste the text. ZaLingo returns a clear summary in one of ten South African languages, in seconds.</p>
-  <div class="langs">{chips}</div>
 </div>
 """, unsafe_allow_html=True)
+
+st.markdown('<div class="pill-label">Summarize into</div>', unsafe_allow_html=True)
+if hasattr(st, "pills"):
+    language = st.pills("Output language", LANGUAGES, selection_mode="single", default="English",
+                        label_visibility="collapsed") or "English"
+else:  # older Streamlit versions
+    language = st.selectbox("Output language", LANGUAGES)
+st.write("")
 
 c1, c2, c3 = st.columns(3)
 c1.markdown('<div class="feat"><b>Ten languages</b><span>From isiZulu to Tshivenda, plus English and Afrikaans.</span></div>', unsafe_allow_html=True)
