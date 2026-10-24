@@ -1,4 +1,3 @@
-  
 # ============================================
 # 🇿🇦 ZALINGO ACADEMIC - Research Paper Summarizer
 # ============================================
@@ -16,22 +15,81 @@ import tempfile
 from deep_translator import GoogleTranslator
 
 # ============================================
-# PAGE CONFIGURATION
+# PAGE CONFIGURATION & CUSTOM UI THEME
 # ============================================
 
 st.set_page_config(
-    page_title="ZaLingo Academic - Research Paper Summarizer",
-    page_icon="📚",
-    layout="wide"
+    page_title="ZaLingo Academic | Multilingual Research Tool",
+    page_icon="🎓",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-st.title("📚 ZaLingo Academic: Research Papers in Your Language")
+st.markdown("""
+<style>
+    /* Clean academic background */
+    .stApp {
+        background-color: #F8FAFC;
+    }
+    
+    /* Main Title Styling */
+    h1 {
+        color: #0F172A;
+        font-family: 'Inter', sans-serif;
+        font-weight: 800;
+    }
+    
+    /* Subtitle and body text */
+    p, .stMarkdown {
+        color: #334155;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    /* Sidebar Styling */
+    [data-testid="stSidebar"] {
+        background-color: #FFFFFF;
+        border-right: 1px solid #E2E8F0;
+        padding-top: 2rem;
+    }
+    
+    /* Green "Free to Use" box */
+    .stAlert {
+        background-color: #ECFDF5;
+        border: 1px solid #10B981;
+        border-radius: 8px;
+        color: #065F46;
+    }
+    
+    /* Upload box styling */
+    [data-testid="stFileUploadDropzone"] {
+        border: 2px dashed #94A3B8;
+        border-radius: 12px;
+        background-color: #FFFFFF;
+        transition: all 0.3s ease;
+    }
+    [data-testid="stFileUploadDropzone"]:hover {
+        border-color: #3B82F6;
+        background-color: #EFF6FF;
+    }
+    
+    /* Hide the default Streamlit footer */
+    footer {visibility: hidden;}
+</style>
+""", unsafe_allow_html=True)
+
+# ============================================
+# MAIN HEADER
+# ============================================
+
+st.title("🎓 ZaLingo Academic")
+st.markdown("### *Making global research accessible in South African languages.*")
+st.divider()
 
 st.success("🎉 **FREE TO USE!** No payment required. Get your free API key below.")
 
 st.write("""
-Upload any research paper (PDF) - get a summary in YOUR language!
-isiZulu • isiXhosa • Afrikaans • English • Sepedi • Sesotho • Setswana • siSwati • Xitsonga • Tshivenda
+Upload any research paper (PDF) and get a summary in YOUR language.
+**Supported languages:** isiZulu • isiXhosa • Afrikaans • English • Sepedi • Sesotho • Setswana • siSwati • Xitsonga • Tshivenda
 """)
 
 # ============================================
@@ -58,7 +116,7 @@ with st.sidebar:
         api_key = st.text_input(
             "Gemini API Key",
             type="password",
-            placeholder="AIzaSyA4abVeeWUszf75QtfmCC-7SA4Z9CQLYeg"
+            placeholder="Paste your API key here"
         )
         
     elif api_provider == "Mistral AI":
@@ -73,6 +131,8 @@ with st.sidebar:
             type="password",
             placeholder="Enter your Mistral key"
         )
+    else:
+        api_key = None
     
     # Add note about free credits
     st.info("💡 **1 Billion tokens ≈ 500-1000 research papers!**")
