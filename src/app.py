@@ -573,4 +573,4 @@ Supported languages: isiZulu • isiXhosa • Afrikaans • English • Sepedi �
 Built with ❤️ during LLM Training (DS-I Africa, 2026) using FREE AI APIs
 """)
 
-st.caption("📌 **FREE FOREVER:** Get your API key at aistudio.google.com - no payment needed!")
+st.caption("📌 **FREE FOREVER:** Get your API key at aistudio.google.com - no payment needed! v2")
